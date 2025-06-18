@@ -6,9 +6,12 @@ import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Logger;
+
+import org.example.handler.ClientHandler;
 import org.example.model.*;
-import org.example.util.ServerUtil;
 
 public class Main {
 
@@ -30,10 +33,11 @@ public class Main {
 
         try ( ServerSocket serverSocket = new ServerSocket(port);){
            logger.info("Server started on port 8080");
-            while (true){
+            ExecutorService executorService= Executors.newFixedThreadPool(20);
+            while(true){
                 Socket client=serverSocket.accept();
-                System.out.println("🔔 Client connected from: " + client.getInetAddress() + ":" + client.getPort());
-                handelClient(client);
+                System.out.println("--- Client connected from------: " + client.getInetAddress() + ":" + client.getPort());
+                executorService.submit(()->handelClient(client));
             }
         }catch (Exception ex){
             logger.info("Something Wrong happen in Server Socket");
@@ -73,6 +77,7 @@ public class Main {
             //handle malformed request
             if (strings.length != 3) {
                 outputStream.write("HTTP/1.1 400 Bad Request\r\n\r\n".getBytes());
+                outputStream.flush();
                 return;
             }
 
@@ -100,8 +105,14 @@ public class Main {
 //                            body;        //Every line is terminated by \r\n
 //
 //           outputStream.write(response.getBytes());  // sends bytes directly to the client (browser, Postman, etc.). That's how low-level TCP servers work — they stream raw data over sockets.
-           ServerUtil.getFile(httpRequest.getPath(),outputStream);
-           outputStream.flush();
+            if (httpRequest.getPath().contains("api") || ( !httpRequest.getPath().contains(".") && (!httpRequest.getPath().contains("/")))) {
+                ClientHandler.registerAnnotatedRoutes();
+                ClientHandler.requestHandler(httpRequest.getPath(),outputStream);
+            } else {
+                ClientHandler.getFile(httpRequest.getPath(), outputStream);
+            }
+
+            outputStream.flush();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
