@@ -95,19 +95,9 @@ public class Main {
                 }
             }
             httpRequest.setHeaders(headers);
-            // Build HTTP response
-//            String body = "OK";
-//            String response =
-//                    "HTTP/1.1 200 OK\r\n" +
-//                            "Content-Type: "+ServerUtil.getContentType(httpRequest.getPath())+"\r\n" +
-//                            "Content-Length: " + body.length() + "\r\n" +
-//                            "\r\n" +       // A blank line (\r\n alone) separates headers from the body
-//                            body;        //Every line is terminated by \r\n
-//
-//           outputStream.write(response.getBytes());  // sends bytes directly to the client (browser, Postman, etc.). That's how low-level TCP servers work — they stream raw data over sockets.
             if (httpRequest.getPath().contains("api") || ( !httpRequest.getPath().contains(".") && (!httpRequest.getPath().contains("/")))) {
                 ClientHandler.registerAnnotatedRoutes();
-                ClientHandler.requestHandler(httpRequest.getPath(),outputStream);
+                ClientHandler.requestHandler(httpRequest.getPath(),httpRequest.getMethod(),outputStream);
             } else {
                 ClientHandler.getFile(httpRequest.getPath(), outputStream);
             }
