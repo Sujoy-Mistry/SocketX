@@ -7,7 +7,7 @@ import org.example.model.RequestType;
 public class RequestController {
 
         @RequestType.Get("/api/hello")
-        public String hello(@RequestType.RequestParam("param") int no) {
+        public String hello(@RequestType.RequestParam("count") int no) {
             return "{\"message\": \"Hello with requestParam " + no + "\"}";
         }
 
